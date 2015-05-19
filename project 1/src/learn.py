@@ -1,21 +1,38 @@
+#!usr/bin/python
+import sys
+import numpy as np
+
+
 def readTrainingSet(filename): 
     # Open a file and get the number of lines
     fr = open(filename) 
     numberOfLines = len(fr.readlines()) 
   
     # Make a result matrix with NOL rows and 3 columns
-    returnMat = zeros((numberOfLines,3)) 
+    returnMat = np.zeros((numberOfLines,14)) 
     classLabelVector = [] 
-  
+    translation = {1:[],3:[],5:[],6:[],7:[],8:[],9:[],13:[]}
+    
     fr = open(filename) 
     index = 0
     # Read each line and split by tabs.
     for line in fr.readlines(): 
-        listFromLine = line.strip().split('\t') 
-        # Use the columns 0, 1 and 2 for values (put them in the matrix)
-        returnMat[index,:] = listFromLine[0:3] 
+        listFromLine = line.strip().split(', ') 
+        # Use the columns 0, till 14 for values (put them in the matrix)
+        for i in range(0,14):
+            if(i in translation):
+                if(listFromLine[i] in translation[i]):
+                    returnMat[index,i] = translation[i].index(listFromLine[i])
+                else:
+                    translation[i].append(listFromLine[i]);
+                    returnMat[index,i] = len(translation[i])
+                
+            else:
+                returnMat[index,i] = int(listFromLine[i])
+            
+            
         # Use negative indexing (to begin at the end of the array) and the value to an int (1, 2 or 3)
-        classLabelVector.append(int(listFromLine[-1])) 
+        classLabelVector.append( 1 if listFromLine[-1] == '>50K' else 0) 
         index += 1
     return returnMat,classLabelVector 
         
@@ -98,6 +115,11 @@ def testClassifier(features, labels, k):
               labels[numTestVecs:m], k)
    
         if (classifierResult != labels[i]): errorCount += 1.0
-    print("the total error rate is: %f", (errorCount/float(numTestVecs)))    
+    print("the total error rate is: %f", (errorCount/float(numTestVecs)))   
+
+def main():
+    readTrainingSet(sys.argv[1])
+if __name__    == "__main__":
+    main()
 
 
