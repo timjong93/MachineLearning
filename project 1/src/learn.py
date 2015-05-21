@@ -1,23 +1,29 @@
 #!usr/bin/python
 import sys
 import numpy as np
-
+from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import KDTree
 
 def readTrainingSet(filename): 
     # Open a file and get the number of lines
-    fr = open(filename) 
-    numberOfLines = len(fr.readlines()) 
-  
+    fr = open(filename)
+    tempLines = fr.readlines()
+    lines = []
+    for line in tempLines:
+        if(not "?" in line and len(line.split(", ")) == 15):
+            lines.append(line)    
+    numberOfLines = len(lines) 
+    print(numberOfLines)
+    
     # Make a result matrix with NOL rows and 3 columns
     returnMat = np.zeros((numberOfLines,14)) 
     classLabelVector = [] 
     translation = {1:[],3:[],5:[],6:[],7:[],8:[],9:[],13:[]}
-    
-    fr = open(filename) 
+     
     index = 0
     # Read each line and split by tabs.
-    for line in fr.readlines(): 
-        listFromLine = line.strip().split(', ') 
+    for line in lines:
+        listFromLine = line.strip().split(', ')
         # Use the columns 0, till 14 for values (put them in the matrix)
         for i in range(0,14):
             if(i in translation):
@@ -25,11 +31,10 @@ def readTrainingSet(filename):
                     returnMat[index,i] = translation[i].index(listFromLine[i])
                 else:
                     translation[i].append(listFromLine[i]);
-                    returnMat[index,i] = len(translation[i])
-                
+                    returnMat[index,i] = len(translation[i]) - 1
             else:
+                #print(listFromLine[i])
                 returnMat[index,i] = int(listFromLine[i])
-            
             
         # Use negative indexing (to begin at the end of the array) and the value to an int (1, 2 or 3)
         classLabelVector.append( 1 if listFromLine[-1] == '>50K' else 0) 
@@ -58,13 +63,13 @@ def autoNorm(dataSet):
     # Define the ranges per column
     ranges = maxVals - minVals 
     # Create a result matrix and normalize values between 0 and 1.
-    normDataSet = zeros(shape(dataSet)) 
+    normDataSet = np.zeros(np.shape(dataSet)) 
     # Get the number of samples (rows)
     m = dataSet.shape[0] 
     # Subtract min value from each feature
-    normDataSet = dataSet - tile(minVals, (m,1))
+    normDataSet = dataSet - np.tile(minVals, (m,1))
     # Divide by the range
-    normDataSet = normDataSet / tile(ranges, (m,1)) 
+    normDataSet = normDataSet / np.tile(ranges, (m,1)) 
     return normDataSet, ranges, minVals 
     
 """
@@ -118,7 +123,12 @@ def testClassifier(features, labels, k):
     print("the total error rate is: %f", (errorCount/float(numTestVecs)))   
 
 def main():
-    readTrainingSet(sys.argv[1])
+    data, labels = readTrainingSet(sys.argv[1])
+    data, ranges, minVals = autoNorm(data)
+    kdt = KDTree(data, leaf_size=30, metric='euclidean')
+    print(kdt.query(, k=3, return_distance=False))
+    print(data[1])
+
 if __name__    == "__main__":
     main()
 
