@@ -1,8 +1,7 @@
 #!usr/bin/python
 import sys
 import numpy as np
-from sklearn.neighbors import NearestNeighbors
-from sklearn.neighbors import KDTree
+from sklearn import neighbors, svm
 
 def readTrainingSet(filename): 
     # Open a file and get the number of lines
@@ -72,6 +71,15 @@ def autoNorm(dataSet):
     normDataSet = normDataSet / np.tile(ranges, (m,1)) 
     return normDataSet, ranges, minVals 
     
+def autoNorm2(dataSet, ranges, minVals):
+    normDataSet = np.zeros(np.shape(dataSet)) 
+    # Get the number of samples (rows)
+    m = dataSet.shape[0] 
+    # Subtract min value from each feature
+    normDataSet = dataSet - np.tile(minVals, (m,1))
+    # Divide by the range
+    normDataSet = normDataSet / np.tile(ranges, (m,1)) 
+    return normDataSet
 """
 KNN algorithm implementation.
 """
@@ -106,6 +114,7 @@ def knnClassify(testSample, dataSet, labels, k):
 """
  Test a subset of the data on the remaining data (test set vs training set)
 """
+""""
 def testClassifier(features, labels, k):
     # Percentage of data to hold back from the data set (used as test set)
     hoRatio = 0.10
@@ -121,13 +130,25 @@ def testClassifier(features, labels, k):
    
         if (classifierResult != labels[i]): errorCount += 1.0
     print("the total error rate is: %f", (errorCount/float(numTestVecs)))   
+"""
+def testClassifier(classifier, testdata, testlabels):
+    errorCount = 0
+    for d in range(0,testdata.shape[0]):
+        if(classifier.predict(testdata[d])[0] != testlabels[d]):
+            errorCount += 1
+    print("the total error rate is: ", (errorCount/float(testdata.shape[0])))
 
 def main():
     data, labels = readTrainingSet(sys.argv[1])
     data, ranges, minVals = autoNorm(data)
-    kdt = KDTree(data, leaf_size=30, metric='euclidean')
-    print(kdt.query(, k=3, return_distance=False))
-    print(data[1])
+    
+    testdata, testlabels = readTrainingSet(sys.argv[2])
+    testdata = autoNorm2(testdata, ranges, minVals)
+    
+    #knn = neighbors.KNeighborsClassifier(n_neighbors=50)
+    classifier = svm.SVC()
+    classifier.fit(data, labels)
+    testClassifier(classifier, testdata, testlabels)
 
 if __name__    == "__main__":
     main()
