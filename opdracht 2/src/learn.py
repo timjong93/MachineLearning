@@ -16,7 +16,7 @@ def readTrainingSet(filename, translation):
     print(numberOfLines)
     
     # Make a result matrix with NOL rows and 3 columns
-    returnMat = np.zeros((numberOfLines,25)) 
+    returnMat = np.zeros((numberOfLines,26)) 
     classLabelVector = [] 
      
     index = 0
@@ -24,7 +24,7 @@ def readTrainingSet(filename, translation):
     for line in lines:
         listFromLine = line.strip().split(',')
         # Use the columns 0, till 14 for values (put them in the matrix)
-        for i in range(0,24):
+        for i in range(0,26):
             if(i in translation):
                 if(listFromLine[i] in translation[i]):
                     returnMat[index,i] = translation[i].index(listFromLine[i])
@@ -132,7 +132,7 @@ def main():
         print(d)
     #data, ranges, minVals = autoNorm(data)
     
-    showScatterPlot(data, labels, 16, 21)
+    showScatterPlot(data, labels, 21, 25)
     #showScatterPlot(data, labels, 5, 6)
     #showScatterPlot(data, labels, 4, 8)
     #showScatterPlot(data, labels, 4, 9)
