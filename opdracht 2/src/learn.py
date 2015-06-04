@@ -1,30 +1,30 @@
 #!usr/bin/python
 import sys
 import numpy as np
-from sklearn import neighbors, svm
+import matplotlib as plt
+from sklearn import neighbors, svm, tree
 
-def readTrainingSet(filename): 
+def readTrainingSet(filename, translation): 
     # Open a file and get the number of lines
     fr = open(filename)
     tempLines = fr.readlines()
     lines = []
     for line in tempLines:
-        if(not "?" in line and len(line.split(", ")) == 15):
+        if(not "?" in line and len(line.split(",")) == 26):
             lines.append(line)    
     numberOfLines = len(lines) 
     print(numberOfLines)
     
     # Make a result matrix with NOL rows and 3 columns
-    returnMat = np.zeros((numberOfLines,14)) 
+    returnMat = np.zeros((numberOfLines,25)) 
     classLabelVector = [] 
-    translation = {1:[],3:[],5:[],6:[],7:[],8:[],9:[],13:[]}
      
     index = 0
     # Read each line and split by tabs.
     for line in lines:
-        listFromLine = line.strip().split(', ')
+        listFromLine = line.strip().split(',')
         # Use the columns 0, till 14 for values (put them in the matrix)
-        for i in range(0,14):
+        for i in range(0,24):
             if(i in translation):
                 if(listFromLine[i] in translation[i]):
                     returnMat[index,i] = translation[i].index(listFromLine[i])
@@ -33,11 +33,14 @@ def readTrainingSet(filename):
                     returnMat[index,i] = len(translation[i]) - 1
             else:
                 #print(listFromLine[i])
-                returnMat[index,i] = int(listFromLine[i])
+                returnMat[index,i] = float(listFromLine[i])
             
         # Use negative indexing (to begin at the end of the array) and the value to an int (1, 2 or 3)
-        classLabelVector.append( 1 if listFromLine[-1] == '>50K' else 0) 
+        classLabelVector.append(int(listFromLine[-1])) 
         index += 1
+    
+    for k in translation.keys():
+        print(str(k) + ": " + ",".join(translation[k]) + "\n-------\n");
     return returnMat,classLabelVector 
         
 """ 
@@ -47,8 +50,16 @@ def showScatterPlot(data, labels, idx1, idx2):
     import matplotlib.pyplot as plt 
     fig = plt.figure() 
     ax = fig.add_subplot(111) 
+    
+    #norm labels
+    print(max(labels))
+    ranges = max(labels) - min(labels)
+    minL = min(labels)
+    for index in range(0, len(labels)):
+        labels[index] = (labels[index] - minL) / ranges
+    
     # X-axis data, Y-axis data, Size for each sample, Color for each sample 
-    ax.scatter(data[:,idx1], data[:,idx2], 15.0*array(labels), 15.0*array(labels)) 
+    ax.scatter(data[:,idx1], data[:,idx2], np.array(labels) * 100.0, np.array(labels) * 100.0) 
     plt.show()
     
 """
@@ -80,36 +91,6 @@ def autoNorm2(dataSet, ranges, minVals):
     # Divide by the range
     normDataSet = normDataSet / np.tile(ranges, (m,1)) 
     return normDataSet
-"""
-KNN algorithm implementation.
-"""
-def knnClassify(testSample, dataSet, labels, k): 
-    # Size of the featureset
-    dataSetSize = dataSet.shape[0] 
-  
-    # Calculate the difference between the original matrix and the dataset (for each item)
-    diffMat = tile(testSample, (dataSetSize,1)) - dataSet 
-  
-    # Square each cell
-    sqDiffMat = diffMat**2
-  
-    # Sum all the distances per dataitem (row) and take the square root
-    sqDistances = sqDiffMat.sum(axis=1) 
-    distances = sqDistances**0.5
-  
-    # Sort the distances
-    sortedDistIndicies = distances.argsort() 
-    # Take the first k elements and count for each label the number of occurences
-    classCount={} 
-    for i in range(k): 
-        voteIlabel = labels[sortedDistIndicies[i]] 
-        classCount[voteIlabel] = classCount.get(voteIlabel,0) + 1
-  
-    # Sort the class count (by the number of occurences)
-    sortedClassCount = sorted(classCount.iteritems(), key=operator.itemgetter(1), reverse=True) 
-  
-    # Return the most occuring label
-    return sortedClassCount[0][0]
 
 """
  Test a subset of the data on the remaining data (test set vs training set)
@@ -139,18 +120,30 @@ def testClassifier(classifier, testdata, testlabels):
     print("the total error rate is: ", (errorCount/float(testdata.shape[0])))
 
 def main():
-    data, labels = readTrainingSet(sys.argv[1])
-    data, ranges, minVals = autoNorm(data)
+    if(len(sys.argv) < 2):
+        print("ik wil meer argumenten :(")
+        exit()
     
-    testdata, testlabels = readTrainingSet(sys.argv[2])
-    testdata = autoNorm2(testdata, ranges, minVals)
+    translation = {2:[],3:[],4:[],5:[],6:[],7:[],8:[],14:[],15:[],17:[]}
     
-    #knn = neighbors.KNeighborsClassifier(n_neighbors=50)
-    classifier = svm.SVC()
+    data, labels = readTrainingSet(sys.argv[1], translation)
+    
+    for d in data:
+        print(d)
+    #data, ranges, minVals = autoNorm(data)
+    
+    showScatterPlot(data, labels, 16, 21)
+    #showScatterPlot(data, labels, 5, 6)
+    #showScatterPlot(data, labels, 4, 8)
+    #showScatterPlot(data, labels, 4, 9)
+    #showScatterPlot(data, labels, 4, 12)
+    #showScatterPlot(data, labels, 6, 12)
+    
+    classifier = neighbors.KNeighborsClassifier(n_neighbors=3)
     classifier.fit(data, labels)
     testClassifier(classifier, testdata, testlabels)
 
-if __name__    == "__main__":
+if __name__ == "__main__":
     main()
 
 
