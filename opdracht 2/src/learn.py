@@ -2,7 +2,7 @@
 import sys
 import numpy as np
 import matplotlib as plt
-from sklearn import neighbors, svm, tree
+from sklearn import datasets, linear_model, cross_validation
 
 def readTrainingSet(filename, translation): 
     # Open a file and get the number of lines
@@ -16,7 +16,7 @@ def readTrainingSet(filename, translation):
     print(numberOfLines)
     
     # Make a result matrix with NOL rows and 3 columns
-    returnMat = np.zeros((numberOfLines,26)) 
+    returnMat = np.zeros((numberOfLines,25)) 
     classLabelVector = [] 
      
     index = 0
@@ -24,7 +24,7 @@ def readTrainingSet(filename, translation):
     for line in lines:
         listFromLine = line.strip().split(',')
         # Use the columns 0, till 14 for values (put them in the matrix)
-        for i in range(0,26):
+        for i in range(0,25):
             if(i in translation):
                 if(listFromLine[i] in translation[i]):
                     returnMat[index,i] = translation[i].index(listFromLine[i])
@@ -115,7 +115,7 @@ def testClassifier(features, labels, k):
 def testClassifier(classifier, testdata, testlabels):
     errorCount = 0
     for d in range(0,testdata.shape[0]):
-        if(classifier.predict(testdata[d])[0] != testlabels[d]):
+        if(classifier.predict(testdata[d]) != testlabels[d]):
             errorCount += 1
     print("the total error rate is: ", (errorCount/float(testdata.shape[0])))
 
@@ -128,20 +128,25 @@ def main():
     
     data, labels = readTrainingSet(sys.argv[1], translation)
     
-    for d in data:
-        print(d)
+    #for d in data:
+    #    print(d)
     #data, ranges, minVals = autoNorm(data)
     
-    showScatterPlot(data, labels, 21, 25)
+    #showScatterPlot(data, labels, 21, 25)
     #showScatterPlot(data, labels, 5, 6)
     #showScatterPlot(data, labels, 4, 8)
     #showScatterPlot(data, labels, 4, 9)
     #showScatterPlot(data, labels, 4, 12)
     #showScatterPlot(data, labels, 6, 12)
     
-    classifier = neighbors.KNeighborsClassifier(n_neighbors=3)
-    classifier.fit(data, labels)
-    testClassifier(classifier, testdata, testlabels)
+    for i in range (0,20):
+        dTrain, dTest, lTrain, lTest = cross_validation.train_test_split(data, labels, test_size=0.05)
+
+        #iterate through the training and test cross validation segments and
+        #run the classifier on each one, aggregating the results into a list
+        regr = linear_model.LinearRegression()
+        regr.fit(dTrain, lTrain)
+        print("score: " + str(regr.score(dTest, lTest)))
 
 if __name__ == "__main__":
     main()
