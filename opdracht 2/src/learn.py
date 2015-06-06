@@ -2,7 +2,7 @@
 import sys
 import numpy as np
 import matplotlib as plt
-from sklearn import datasets, linear_model, cross_validation
+from sklearn import datasets, decomposition, linear_model, cross_validation
 
 def readTrainingSet(filename, translation): 
     # Open a file and get the number of lines
@@ -138,16 +138,23 @@ def main():
     #showScatterPlot(data, labels, 4, 9)
     #showScatterPlot(data, labels, 4, 12)
     #showScatterPlot(data, labels, 6, 12)
-    
-    for i in range (0,20):
-        dTrain, dTest, lTrain, lTest = cross_validation.train_test_split(data, labels, test_size=0.05)
+   
+    for b in range(1, 25):
+        pca = decomposition.PCA(n_components = b)
+        sorry = pca.fit_transform(data)
+        print("remaining features for " + str(b/10) + ": " + str(pca.n_components_))
+        
+        results = []
+        for i in range (0,20):
+            dTrain, dTest, lTrain, lTest = cross_validation.train_test_split(sorry, labels, test_size=0.4)
 
-        #iterate through the training and test cross validation segments and
-        #run the classifier on each one, aggregating the results into a list
-        regr = linear_model.LinearRegression()
-        regr.fit(dTrain, lTrain)
-        print("score: " + str(regr.score(dTest, lTest)))
-
+            #iterate through the training and test cross validation segments and
+            #run the classifier on each one, aggregating the results into a list
+            regr = linear_model.LinearRegression()
+            regr.fit(dTrain, lTrain)
+            results.append(regr.score(dTest, lTest))
+        print(sum(results)/len(results))
+        
 if __name__ == "__main__":
     main()
 
