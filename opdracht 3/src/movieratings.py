@@ -6,6 +6,7 @@ import numpy as np
 import math
 
 from sklearn.cluster import DBSCAN
+from sklearn.metrics.pairwise import cosine_similarity
 
 genresList = ["unknown","Action","Adventure","Animation","Children's","Comedy","Crime","Documentary","Drama","Fantasy","Film-Noir","Horror","Musical","Mystery","Romance","Sci-Fi","Thriller","War","Western"]
 
@@ -218,13 +219,26 @@ def createFeatureSet(users, ratings, movies):
             returnMat[count][genresList.index(genre)] = userResults[user][genre] / total *100
         returnUID.append(user)
         count += 1
-    print(returnMat, returnUID)
     return returnMat, returnUID
     
 def createClusters(data):
-    db = DBSCAN(eps=7, min_samples=10).fit(data)
+    #Euclidean
+    db = DBSCAN(eps=7, min_samples=3).fit(data)
+    #Cosin
+    #db = DBSCAN(eps=3, min_samples=2, metric=cosine_similarity).fit(data)
     labels = db.labels_
-    print(labels)
+    return labels
+    
+def findSimilarUsers(users, ratings, movies, userId):
+    data, userIds = createFeatureSet(users, ratings, movies)
+    labels = createClusters(data)
+    userCluster = labels[userId]  
+    indices = [i for i, x in enumerate(labels) if x == userCluster]
+    similarUsers = []
+    for index in indices:
+        similarUsers.append(userIds[index])
+    print ('List of users: similar to user', userId)
+    print(similarUsers)        
     
 # Returns the Pearson correlation coefficient for p1 and p2
 def sim_pearson(prefs,p1,p2):
@@ -301,16 +315,21 @@ def main():
     ratings = readRatings(sys.argv[3]);
     
     #mostWatchedGenrePSex(movies, users, ratings);
+    print('--------------------------------------------')
     #mostWatchedGenrePAge(movies, users, ratings);
+    print('--------------------------------------------')
     #mostWatchedGenrePProf(movies, users, ratings);
+    print('--------------------------------------------')
     #mostWatchedGenrePRegion(movies, users, ratings);
+    print('--------------------------------------------')
     #avgRatingPGenre(movies, ratings);
+    print('--------------------------------------------')
     #avgRatingPMov(movies, ratings);
-    
-    #data, userIds = createFeatureSet(users, ratings, movies)
-    #createClusters(data)
-    
-    print(get5Recomendations(ratings, movies, '485'));
+    print('--------------------------------------------')
+    findSimilarUsers(users, ratings, movies, 5);
+    print('--------------------------------------------')
+    print(get5Recomendations(ratings, movies, '485'))
+    print('--------------------------------------------')
     
 if __name__ == "__main__":
     main()
