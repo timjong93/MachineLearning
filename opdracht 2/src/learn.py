@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib as plt
 from sklearn import datasets, decomposition, linear_model, cross_validation
 
+
+
 def readTrainingSet(filename, translation): 
     # Open a file and get the number of lines
     fr = open(filename)
@@ -16,7 +18,7 @@ def readTrainingSet(filename, translation):
     print(numberOfLines)
     
     # Make a result matrix with NOL rows and 3 columns
-    returnMat = np.zeros((numberOfLines,25)) 
+    returnMat = np.zeros((numberOfLines,26)) 
     classLabelVector = [] 
      
     index = 0
@@ -24,7 +26,7 @@ def readTrainingSet(filename, translation):
     for line in lines:
         listFromLine = line.strip().split(',')
         # Use the columns 0, till 14 for values (put them in the matrix)
-        for i in range(0,25):
+        for i in range(0,26):
             if(i in translation):
                 if(listFromLine[i] in translation[i]):
                     returnMat[index,i] = translation[i].index(listFromLine[i])
@@ -46,20 +48,13 @@ def readTrainingSet(filename, translation):
 """ 
  Show two properties of the data in a scatterplot 
 """ 
-def showScatterPlot(data, labels, idx1, idx2): 
+def showScatterPlot(data, idx1, idx2): 
     import matplotlib.pyplot as plt 
     fig = plt.figure() 
     ax = fig.add_subplot(111) 
     
-    #norm labels
-    print(max(labels))
-    ranges = max(labels) - min(labels)
-    minL = min(labels)
-    for index in range(0, len(labels)):
-        labels[index] = (labels[index] - minL) / ranges
-    
     # X-axis data, Y-axis data, Size for each sample, Color for each sample 
-    ax.scatter(data[:,idx1], data[:,idx2], np.array(labels) * 100.0, np.array(labels) * 100.0) 
+    ax.scatter(data[:,idx1], data[:,idx2]) 
     plt.show()
     
 """
@@ -132,13 +127,19 @@ def main():
     #    print(d)
     #data, ranges, minVals = autoNorm(data)
     
-    #showScatterPlot(data, labels, 21, 25)
-    #showScatterPlot(data, labels, 5, 6)
-    #showScatterPlot(data, labels, 4, 8)
-    #showScatterPlot(data, labels, 4, 9)
-    #showScatterPlot(data, labels, 4, 12)
+    #for i in range(0, 25):
+    #    showScatterPlot(data, i, 25)
+    
+    
+    showScatterPlot(data, 9, 25)
+    
+    showScatterPlot(data, 10, 25)
+    showScatterPlot(data, 11, 25)
+    showScatterPlot(data, 12, 25)
+    
     #showScatterPlot(data, labels, 6, 12)
-   
+    
+    """
     for b in range(1, 25):
         pca = decomposition.PCA(n_components = b)
         sorry = pca.fit_transform(data)
@@ -154,7 +155,8 @@ def main():
             regr.fit(dTrain, lTrain)
             results.append(regr.score(dTest, lTest))
         print(sum(results)/len(results))
-        
+    """
+    
 if __name__ == "__main__":
     main()
 

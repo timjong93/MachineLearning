@@ -1,0 +1,31 @@
+159
+17: mpfi,2bbl,mfi,1bbl,idi,spdi
+-------
+
+2: audi,bmw,chevrolet,dodge,honda,jaguar,mazda,mercedes-benz,mitsubishi,nissan,peugot,plymouth,porsche,saab,subaru,toyota,volkswagen,volvo
+-------
+
+3: gas,diesel
+-------
+
+4: std,turbo
+-------
+
+5: four,two
+-------
+
+6: sedan,hatchback,wagon,hardtop,convertible
+-------
+
+7: fwd,4wd,rwd
+-------
+
+8: front
+-------
+
+14: ohc,l,dohc,ohcv,ohcf
+-------
+
+15: four,five,six,three,eight
+-------
+
