@@ -3,6 +3,7 @@ import sys
 import operator
 import functools
 import numpy as np
+import math
 
 from sklearn.cluster import DBSCAN
 
@@ -225,6 +226,75 @@ def createClusters(data):
     labels = db.labels_
     print(labels)
     
+# Returns the Pearson correlation coefficient for p1 and p2
+def sim_pearson(prefs,p1,p2):
+    # Get the list of mutually rated items
+    si={}
+    for item in prefs[p1]:
+        if item in prefs[p2]: si[item]=1
+    
+    # Find the number of elements
+    n=len(si)
+    
+    # if they are no ratings in common, return 0
+    if n==0: return 0
+    
+    # Add up all the preferences
+    sum1=sum([prefs[p1][it] for it in si])
+    sum2=sum([prefs[p2][it] for it in si])
+    
+    # Sum up the squares
+    sum1Sq=sum([pow(prefs[p1][it],2) for it in si])
+    sum2Sq=sum([pow(prefs[p2][it],2) for it in si])
+    
+    # Sum up the products
+    pSum=sum([prefs[p1][it]*prefs[p2][it] for it in si])
+    
+    # Calculate Pearson score
+    num=pSum-(sum1*sum2/n)
+    den=math.sqrt((sum1Sq-pow(sum1,2)/n)*(sum2Sq-pow(sum2,2)/n))
+    if den==0: return 0
+    
+    r=num/den
+    
+    return r
+    
+def groupRatingsByUser(ratings):
+    result = {}
+    for rating in ratings:
+        if(not rating["user"] in result):
+            result[rating["user"]] = {}
+        result[rating["user"]][rating["movie"]] = rating["rating"]
+    return result
+
+def get5Recomendations(ratings, movies, user):
+    resultsgrouped = groupRatingsByUser(ratings)
+    similarity_users = {}
+    for u in resultsgrouped:
+        if(not u == user):
+            similarity_users[u] = sim_pearson(resultsgrouped, user, u)
+    
+    similarity_users = sorted(similarity_users.items(), key=operator.itemgetter(1), reverse= True)
+    print(similarity_users)
+    
+    result = []
+    
+    for u, score in similarity_users:
+        uniques = {}
+        for item in resultsgrouped[u]:
+            if not item in resultsgrouped[user]: uniques[item] = resultsgrouped[u][item]
+        
+        for item in uniques:
+            if uniques[item] == 5:
+                result.append(movies[item]["name"])
+                if len(result) >= 5:
+                    break
+                    
+        if len(result) >= 5:
+            break
+                    
+    return result
+    
 def main():
     movies = readMovies(sys.argv[1]);
     users = readUsers(sys.argv[2]);
@@ -237,8 +307,10 @@ def main():
     #avgRatingPGenre(movies, ratings);
     #avgRatingPMov(movies, ratings);
     
-    data, userIds = createFeatureSet(users, ratings, movies)
-    createClusters(data)
+    #data, userIds = createFeatureSet(users, ratings, movies)
+    #createClusters(data)
+    
+    print(get5Recomendations(ratings, movies, '485'));
     
 if __name__ == "__main__":
     main()
